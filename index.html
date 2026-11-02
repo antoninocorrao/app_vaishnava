@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PWA Devozionale Vaishnava</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/antoninocorrao/app_vaishnava/main/tulasi_kirtana.mp3">
+</head>
+<body class="bg-amber-50 text-neutral-900 font-sans pb-24">
+
+    <!-- Header -->
+    <header class="bg-amber-700 text-white p-4 sticky top-0 z-50 shadow-md flex justify-between items-center">
+        <h1 class="text-xl font-bold tracking-wide">🙏 Vaishnava PWA</h1>
+        <span id="connection-status" class="text-xs bg-amber-800 px-2.5 py-1 rounded-full">Online</span>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-md mx-auto p-4">
+        
+        <!-- Tab 1: Audio / Kirtan -->
+        <section id="tab-audio" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-amber-900 mb-2">Lectures & Kirtan</h2>
+            <p class="text-sm text-amber-800 mb-4">Streaming diretto da GitHub (`antoninocorrao/app_vaishnava`) con supporto offline.</p>
+            
+            <div id="audio-list" class="space-y-3">
+                <!-- Generato via JavaScript -->
+            </div>
+        </section>
+
+        <!-- Tab 2: Canti -->
+        <section id="tab-canti" class="tab-content hidden space-y-4">
+            <h2 class="text-2xl font-bold text-amber-900">Canti & Preghiere</h2>
+            <input type="text" id="search-canti" placeholder="Cerca un canto..." class="w-full p-3 rounded-xl border border-amber-300 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-600">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-amber-200">
+                <h3 class="font-bold text-amber-900">Sri Gurvastakam</h3>
+                <p class="text-xs text-neutral-600 mt-1">nama om vishnu-padaya krishna-presthaya bhu-tale...</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-amber-200">
+                <h3 class="font-bold text-amber-900">Tulasi Kirtana</h3>
+                <p class="text-xs text-neutral-600 mt-1">namo namah tulasi krishna-presi si dhao...</p>
+            </div>
+        </section>
+
+        <!-- Tab 3: Bhagavad-gītā -->
+        <section id="tab-gita" class="tab-content hidden space-y-4">
+            <h2 class="text-2xl font-bold text-amber-900">Bhagavad-gītā</h2>
+            <p class="text-sm text-neutral-700">Studio e capitoli del Bhagavad-gītā As It Is.</p>
+            <div class="space-y-2">
+                <div class="bg-white p-3 rounded-lg border border-amber-200 shadow-sm">Capitolo 1: Osservando gli eserciti</div>
+                <div class="bg-white p-3 rounded-lg border border-amber-200 shadow-sm">Capitolo 2: Il contenuto della Gītā riassunto</div>
+            </div>
+        </section>
+
+        <!-- Tab 4: Calendario -->
+        <section id="tab-calendar" class="tab-content hidden space-y-4">
+            <h2 class="text-2xl font-bold text-amber-900">Calendario Vaishnava</h2>
+            <div class="bg-amber-100 p-4 rounded-xl border border-amber-300">
+                <p class="font-semibold text-amber-900">Prossimo Ekadasi</p>
+                <p class="text-sm text-amber-800 mt-1">Verifica le date calcolate per la tua località.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-amber-200 shadow-lg flex justify-around p-3 z-50">
+        <button onclick="switchTab('audio')" class="tab-btn text-amber-700 font-bold flex flex-col items-center text-xs" data-target="tab-audio">
+            🎵 <span>Audio</span>
+        </button>
+        <button onclick="switchTab('canti')" class="tab-btn text-neutral-500 flex flex-col items-center text-xs" data-target="tab-canti">
+            📜 <span>Canti</span>
+        </button>
+        <button onclick="switchTab('gita')" class="tab-btn text-neutral-500 flex flex-col items-center text-xs" data-target="tab-gita">
+            📖 <span>Gītā</span>
+        </button>
+        <button onclick="switchTab('calendar')" class="tab-btn text-neutral-500 flex flex-col items-center text-xs" data-target="tab-calendar">
+            📅 <span>Calendario</span>
+        </button>
+    </nav>
+
+    <script>
+        const tracks = [
+            { title: "Tulasi Kirtana", file: "tulasi_kirtana.mp3" },
+            { title: "Govinda", file: "govinda.mp3" },
+            { title: "Jaya Radha Madhava", file: "jaya_radha_madhava.mp3" },
+            { title: "Narashimha Pranam", file: "narashimha_pranam.mp3" },
+            { title: "Sad Goswami Prayers", file: "sad_goswami_prayers.mp3" },
+            { title: "Sri Guru Vandana", file: "sri_guru_vandana.mp3" },
+            { title: "Sri Gurvastaka", file: "sri_gurvastaka.mp3" }
+        ];
+
+        const audioListEl = document.getElementById('audio-list');
+        let currentAudio = null;
+
+        function renderAudioList() {
+            audioListEl.innerHTML = '';
+            tracks.forEach((track, index) => {
+                const rawUrl = `https://raw.githubusercontent.com/antoninocorrao/app_vaishnava/main/${track.file}`;
+                
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-amber-200 flex flex-col space-y-2";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-amber-900">${track.title}</span>
+                        <span id="status-${index}" class="text-xs text-neutral-500">Pronto</span>
+                    </div>
+                    <div class="flex space-x-2 pt-2">
+                        <button onclick="playAudio('${rawUrl}', ${index})" class="flex-1 bg-amber-700 text-white py-2 rounded-lg text-sm font-semibold active:bg-amber-800">Play</button>
+                        <button onclick="pauseAudio()" class="px-3 bg-neutral-200 text-neutral-700 py-2 rounded-lg text-sm font-semibold">Pausa</button>
+                        <button onclick="saveOffline('${rawUrl}', ${index})" class="px-3 bg-amber-100 text-amber-800 py-2 rounded-lg text-sm font-semibold border border-amber-300">Salva</button>
+                    </div>
+                `;
+                audioListEl.appendChild(card);
+            });
+        }
+
+        function playAudio(url, index) {
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+            document.querySelectorAll('[id^="status-"]').forEach(el => el.innerText = "Pronto");
+            
+            const statusEl = document.getElementById(`status-${index}`);
+            statusEl.innerText = "Caricamento...";
+            
+            currentAudio = new Audio(url);
+            currentAudio.play().then(() => {
+                statusEl.innerText = "▶️ In riproduzione";
+            }).catch(err => {
+                statusEl.innerText = "❌ Errore file o rete";
+                console.error(err);
+            });
+
+            currentAudio.onended = () => {
+                statusEl.innerText = "Completato";
+            };
+        }
+
+        function pauseAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                document.querySelectorAll('[id^="status-"]').forEach(el => {
+                    if(el.innerText.includes("In riproduzione")) el.innerText = "In pausa";
+                });
+            }
+        }
+
+        async function saveOffline(url, index) {
+            const statusEl = document.getElementById(`status-${index}`);
+            statusEl.innerText = "Scaricamento...";
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // Sostituisce l'audio con il blob locale
+                if(currentAudio) currentAudio.pause();
+                currentAudio = new Audio(blobUrl);
+                currentAudio.play();
+                statusEl.innerText = "💾 Salvato Offline";
+            } catch(e) {
+                statusEl.innerText = "Errore salvataggio";
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-amber-700', 'font-bold');
+                btn.classList.add('text-neutral-500');
+                if(btn.dataset.target === tabId) {
+                    btn.classList.add('text-amber-700', 'font-bold');
+                    btn.classList.remove('text-neutral-500');
+                }
+            });
+        }
+
+        renderAudioList();
+    </script>
+</body>
+</html>
